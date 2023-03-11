@@ -8,5 +8,5 @@ declare global {
 		// interface Platform {}
 	}
 }
-
+declare module 'd3';
 export {};
