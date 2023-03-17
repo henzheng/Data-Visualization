@@ -21,6 +21,7 @@
 	},
 	"type": "module",
 	"dependencies": {
+		"chart.js": "^4.2.1",
 		"d3": "7.4"
 	}
 }

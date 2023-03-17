@@ -40,7 +40,7 @@
     }
 
     onMount(async () => {
-        const data: Pokemon[] | any = await d3.json("/pokemon_data.json");
+        const data: Pokemon[] | any = await d3.json("/PokemonData.json");
         const margin = { top: 20, right: 20, bottom: 50, left: 50 };
         const width = 600 - margin.left - margin.right;
         const height = 400 - margin.top - margin.bottom;
@@ -62,7 +62,11 @@
         const xAxis = canvas.append("g").attr("transform", `translate(0, ${height})`).call(d3.axisBottom(xScale));
         const yAxis = canvas.append("g").call(d3.axisLeft(yScale));
 
-        const tooltip = d3.select("body").append("div").attr("class", "tooltip").style("opacity", 0).style("font-family", `'Lato', sans-serif`);
+        const tooltip = d3.select("body")
+        .append("div")
+        .attr("class", "tooltip")
+        .style("opacity", 0)
+        .style("font-family", `'Lato', sans-serif`);
 
         //creating all the circles on the scatterplot
         //.selectAll creates an empty subsection
@@ -75,10 +79,13 @@
         .attr("r", 3.5)
         .style("fill", (d: Pokemon):string => typeColors[d['types'][0]])
         .on("mouseover", (event, d: Pokemon) => {
+
             tooltip.transition().duration(200).style("opacity", 1);
             tooltip.html(
                 `<b>${d.name}</b><br/><img src="${d.front_sprite_url}" alt="${d.name}"/>`
             )
+            .style("background", `repeating-linear-gradient(45deg, ${typeColors[d['types'][0]]}, #fff 1px);`)
+            .style("cursor", "pointer")
             .style("left", event.pageX + "px")
             .style("top", event.pageY + "px");
         })
