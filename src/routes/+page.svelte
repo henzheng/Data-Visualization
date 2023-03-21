@@ -11,11 +11,14 @@
 
 <style scoped>
     * {
+        overflow-x: hidden;
         font-family: 'Roboto Slab', serif;
     }
     .top-content {
-        position: relative;
-        top: 5px;
+        position: absolute;
+        top: 40vh;
+        left: 38vw;
+        margin: auto;
         display: flex;
         flex-direction: column;
         justify-content: center;
