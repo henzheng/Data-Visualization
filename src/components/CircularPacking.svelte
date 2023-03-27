@@ -18,30 +18,29 @@
     
         const svg = d3.select("body")
             .append("svg")
-            .attr("width", "100vw")
-            .attr("height", "100vh")
-            .style("viewBox", "0 0 100 100")
-
-        // let color = d3.scaleOrdinal()
-        //     .domain(["Normal", "Fire", "Water", "Electric", "Grass", "Ice", "Fighting", "Poison", "Ground", "Flying", "Psychic", "Bug", "Rock", "Ghost", "Dragon"])
-        //     .range(["#A8A878","#F08030","#6890F0","#F8D030","#78C850","#98D8D8","#C03028","#A040A0","#E0C068","#A890F0","#F85888","#A8B820","#B8A038","#705898","#7038F8"]);
-
-        let groupRange = [];
-        for(let i=0; i<Object.keys(typeColors).length; i++) {
-            groupRange.push((i * 75))
-        }
+            .attr("width", width)
+            .attr("height", height)
+            .style("border", "2px solid black")
 
         // let groups = ["Normal", "Fire", "Water", "Electric", "Grass", "Ice", "Fighting", "Poison", "Ground", "Flying", "Psychic", "Bug", "Rock", "Ghost", "Dragon"];
         let groups = Array.from(d3.group(data, (d: Pokemon) => d.types[0].type.name), ([key, value]) => ({ key, values: value }));
         console.log(groups)
+        
         let color = d3.scaleOrdinal()
             .domain(groups.map((group) => group.key))
             .range(groups.map((group, i) => d3.interpolateRainbow(i / (groups.length - 1))))
 
 
-        let groupScale = d3.scaleOrdinal()
-            .domain(["Normal", "Fire", "Water", "Electric", "Grass", "Ice", "Fighting", "Poison", "Ground", "Flying", "Psychic", "Bug", "Rock", "Ghost", "Dragon"])
-            .range(groupRange)
+
+        // let groupScale = d3.scaleOrdinal()
+        //     .domain(["Normal", "Fire", "Water", "Electric", "Grass", "Ice", "Fighting", "Poison", "Ground", "Flying", "Psychic", "Bug", "Rock", "Ghost", "Dragon"])
+        //     .range(groupRange)
+        
+        
+
+        // let groupScale = d3.scaleOrdinal()
+        //     .domain(["Normal", "Fire", "Water", "Electric", "Grass", "Ice", "Fighting", "Poison", "Ground", "Flying", "Psychic", "Bug", "Rock", "Ghost", "Dragon"])
+        //     .range(groupRange)
         
         interface Pokemon {
             id: number;
@@ -97,14 +96,32 @@
             .style("font-family", `'Lato', sans-serif`);
 
         let simulation = d3.forceSimulation()
-            // .force("x", d3.forceX().strength(0.5).x((d: any): any => groupScale(d.types[0].type.name)))
-            // .force("y", d3.forceY().strength(0.1).y(height / 2))
-            .force("group", d3.forceManyBody().strength(10).distanceMax(150).distanceMin(50))
-            .force("center", d3.forceCenter().x(width / 2).y(height / 2)) //attration to center of the svg
-            // .force("charge", d3.forceManyBody().strength(.1)) 
-            .force("radial", d3.forceRadial(width / 5.5, width / 2, height / 2))
-            .force("collide", d3.forceCollide().strength(.5).radius((d: any) => size(d.base_experience)).iterations(1)) // force that prevents overlapping
+            .force("group", d3.forceManyBody().strength(.1))
+            .force("center", d3.forceCenter().x(width / 2).y(height / 2))
+            // .force("charge", d3.forceManyBody().strength(-.1)) 
+            // .force("radial", d3.forceRadial(width / 5.5, width / 2, height / 2))
+            .force("collide", d3.forceCollide().strength(.2).radius((d: any) => size(d.base_experience)).iterations(1)) // force that prevents overlapping
 
+        const radius = 400;
+        const clipPath = svg
+            .append("circle")
+            .attr("cx", 0)
+            .attr("cy", 0)
+            .attr("r", radius)
+            .attr("fill", "none")
+            .attr("stroke", "black")
+            .attr("transform", `translate(${width / 2}, ${height/2})`)
+            .style("stroke-width", 2)
+
+        const inner = svg
+            .append("circle")
+            .attr("cx", 0)
+            .attr("cy", 0)
+            .attr("r", 200)
+            .attr("fill", "none")
+            .attr("stroke", "black")
+            .attr("transform", `translate(${width / 2}, ${height/2})`)
+            .style("stroke-width", 2)
         let node = svg.append("g")
             .selectAll("circle")
             .data(data)
@@ -117,7 +134,7 @@
                 .attr("cy", width / 2)
                 .style("fill-opacity", 0.8)
                 .attr("stroke", "black")
-                .style("stroke-width", 2)
+                .style("stroke-width", 1)
                 .on("mouseover", function() {
                     this.style.stroke = "white";
                     this.style.cursor = "pointer";
@@ -156,14 +173,61 @@
                     .on("drag", dragged)
                     .on("end", dragended)
                 );
+        
+        const donutRadius = 400; // radius of the donut
+        const circleRadius = 30; // radius of the circles
+        const donutWidth = 200; // width of the donut
 
         simulation.nodes(data)
-            // .force("collide", d3.forceCollide().strength(.5).radius(function(d){ return d.radius + nodePadding; }).iterations(1))
-            .on("tick", function(this: d3.Simulation<d3.SimulationNodeDatum, undefined>) {
-                node
-                .attr("cx", (d: d3.SimulationNodeDatum) => d.x)
-                .attr("cy", (d: d3.SimulationNodeDatum) => d.y);
+            .on("tick", function() {
+                node.attr("cx", (d) => {
+                        // calculate the distance of the node from the center of the visualization
+                        const distance = Math.sqrt((d.x - width / 2) ** 2 + (d.y - height / 2) ** 2);
+                        // check if the distance is within the donut radius
+                        if (distance < donutRadius) {
+                            // calculate the angle of the node relative to the center of the visualization
+                            const angle = Math.atan2(d.y - height / 2, d.x - width / 2);
+                            // calculate the position of the node on the inner circle of the donut
+                            const innerX = Math.cos(angle) * (donutRadius - donutWidth / 2 - circleRadius);
+                            const innerY = Math.sin(angle) * (donutRadius - donutWidth / 2 - circleRadius);
+                            return innerX + width / 2;
+                        } else {
+                            // calculate the position of the node on the outer circle of the donut
+                            const outerX = (d.x - width / 2) * (donutRadius + donutWidth / 2 - circleRadius) / distance + width / 2;
+                            const outerY = (d.y - height / 2) * (donutRadius + donutWidth / 2 - circleRadius) / distance + height / 2;
+                            return outerX;
+                        }
+                    })
+                    .attr("cy", (d) => {
+                        // calculate the distance and angle of the node relative to the center of the visualization (similar to cx)
+                        const distance = Math.sqrt((d.x - width / 2) ** 2 + (d.y - height / 2) ** 2);
+                        const angle = Math.atan2(d.y - height / 2, d.x - width / 2);
+                        // check if the distance is within the donut radius
+                        if (distance < donutRadius) {
+                            // calculate the position of the node on the inner circle of the donut (similar to cx)
+                            const innerX = Math.cos(angle) * (donutRadius - donutWidth / 2 - circleRadius);
+                            const innerY = Math.sin(angle) * (donutRadius - donutWidth / 2 - circleRadius);
+                            return innerY + height / 2;
+                        } else {
+                            // calculate the position of the node on the outer circle of the donut (similar to cx)
+                            const outerX = (d.x - width / 2) * (donutRadius + donutWidth / 2 - circleRadius) / distance + width / 2;
+                            const outerY = (d.y - height / 2) * (donutRadius + donutWidth / 2 - circleRadius) / distance + height / 2;
+                            return outerY;
+                        }
+                    });
             });
+
+        // simulation.nodes(data)
+        //     // .force("collide", d3.forceCollide().strength(.5).radius(function(d){ return d.radius + nodePadding; }).iterations(1))
+        //     .on("tick", function(this: d3.Simulation<d3.SimulationNodeDatum, undefined>) {
+        //         node
+        //         .attr("cx", (d: d3.SimulationNodeDatum) => {
+        //             return (d.x = Math.max(radius, Math.min(width - radius, d.x)));
+        //         })
+        //         .attr("cy", (d: d3.SimulationNodeDatum) => {
+        //             return (d.y = Math.max(radius, Math.min(height - radius, d.y)));
+        //         });
+        //     });
 
         function dragstarted(event, d) {
             if (!event.active) simulation.alphaTarget(.03).restart();

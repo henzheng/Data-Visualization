@@ -1,11 +1,12 @@
 <script lang="ts">
     import ScatterPlot from "../components/ScatterPlot.svelte";
     import CircularPacking from "../components/CircularPacking.svelte";
+    import Hexagons from "../components/Hexagons.svelte";
 </script>
 
 <section class="top-content">
-    <h1 class="title">Generation I Pokemon</h1>
-    <h3 class="description">A data visualization on all 151 Pokemon native to the Kanto region</h3>
+    <h1 class="title">Generation I Pokémon</h1>
+    <h3 class="description">A data visualization on all 151 Pokémon native to the Kanto region</h3>
 </section>
 <CircularPacking/>
 
